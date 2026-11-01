@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Безпека 2.0: Гаджети, самокати та закони осінніх доріг</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        autumn: {
+                            50: '#FDF8F5',
+                            100: '#F7EBE1',
+                            500: '#E87A00',
+                            600: '#CC6A00',
+                            800: '#7A3F00'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; overflow: hidden; } /* Prevent whole-page scroll */
+        
+        /* Animations */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Scrollbar for inner areas */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Night Vision Simulator */
+        .night-vision-container {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            background-color: #1a1a1a;
+            overflow: hidden;
+            border-radius: 1rem;
+            cursor: crosshair;
+        }
+        .pedestrian-no-flicker, .pedestrian-flicker {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 5rem;
+            transition: all 0.3s ease;
+        }
+        .pedestrian-no-flicker { right: 20%; color: #222; text-shadow: 0 0 5px #000; }
+        .pedestrian-flicker { right: 20%; color: #fff; text-shadow: 0 0 20px #E87A00, 0 0 40px #E87A00; display: none; }
+        .flashlight-mask {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            background: radial-gradient(circle 100px at 50% 50%, transparent 0%, rgba(0,0,0,0.98) 100%);
+        }
+
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 30px; width: 30px;
+            border-radius: 50%;
+            background: #E87A00;
+            cursor: pointer;
+            margin-top: -10px;
+            box-shadow: 0 0 10px rgba(232,122,0,0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 10px;
+            cursor: pointer;
+            background: #cbd5e1;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body class="bg-autumn-50 text-slate-800 h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md py-4 px-6 shrink-0 z-50">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <span class="text-4xl">🚦</span>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-800">
+                    Безпека 2.0: <span class="text-autumn-600">Осінні дороги</span>
+                </h1>
+            </div>
+            <div class="bg-autumn-100 text-autumn-800 px-4 py-2 rounded-xl font-bold text-xl border border-autumn-200">
+                Бали: <span id="score-display">0</span>/5
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="max-w-7xl mx-auto w-full flex-grow flex flex-col md:flex-row gap-6 p-4 md:p-6 overflow-hidden">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-1/3 lg:w-1/4 shrink-0 overflow-y-auto bg-white rounded-3xl shadow-sm border border-slate-100 p-3 flex flex-col gap-2" id="nav-container">
+            <!-- Navigation buttons will be generated here -->
+        </aside>
+
+        <!-- Content Area -->
+        <main class="w-full md:w-2/3 lg:w-3/4 bg-white rounded-3xl shadow-sm border border-slate-100 p-6 md:p-10 overflow-y-auto" id="content-area">
+            <!-- Dynamic content goes here -->
+        </main>
+    </div>
+
+    <script>
+        // Global State
+        let activeBlockId = 1;
+        let score = 0;
+        let answeredQuizzes = new Set();
+        let simWeather = 'dry'; 
+
+        // Content Data Definition
+        const blocks = [
+            {
+                id: 1,
+                title: "1. Гаджети та фізика",
+                icon: "📱",
+                render: () => `
+                    <div class="fade-in max-w-4xl mx-auto">
+                        <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                            📱 Блок 1. Цифрові пастки та закони фізики
+                        </h2>
+                        
+                        <div class="grid md:grid-cols-2 gap-6 mb-8 text-lg">
+                            <div class="bg-red-50 p-6 rounded-2xl border border-red-100 shadow-sm">
+                                <h3 class="text-2xl font-bold text-red-700 mb-3 flex items-center gap-2">🎧 Проблема уваги</h3>
+                                <p class="text-slate-800 mb-3">Коли ми в месенджері, наша увага на дорозі <b>знижується на 70%</b>. Мозок не вміє робити дві справи одночасно.</p>
+                                <p class="text-slate-800">Навушники з шумозаглушенням "вимикають" слух — ви не почуєте наближення небезпеки.</p>
+                            </div>
+                            <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100 shadow-sm">
+                                <h3 class="text-2xl font-bold text-blue-700 mb-3 flex items-center gap-2">🍂 Фізика дороги</h3>
+                                <p class="text-slate-800">Автомобіль не може зупинитися миттєво. На мокрому асфальті чи опалому листі гальмівний шлях <b>збільшується вдвічі</b>!</p>
+                            </div>
+                        </div>
+
+                        <!-- Simulator -->
+                        <div class="bg-slate-50 p-8 rounded-2xl border-2 border-slate-200 shadow-inner">
+                            <h3 class="font-bold text-2xl text-slate-800 mb-6">🛑 Інтерактив: Гальмівний шлях авто</h3>
+                            
+                            <div class="flex flex-col md:flex-row gap-8 mb-8">
+                                <div class="flex-1">
+                                    <label class="block text-xl font-semibold mb-3">Швидкість авто: <span id="speed-val" class="text-autumn-600 text-2xl">50</span> км/год</label>
+                                    <input type="range" id="speed-slider" min="30" max="100" step="10" value="50" oninput="updateBrakeSim()">
+                                </div>
+                                <div class="flex-1">
+                                    <label class="block text-xl font-semibold mb-3">Покриття дороги:</label>
+                                    <div class="flex flex-col sm:flex-row gap-3">
+                                        <button onclick="setWeather('dry')" id="btn-dry" class="flex-1 px-6 py-3 rounded-xl bg-slate-800 text-white text-lg font-bold shadow-md transition">☀️ Сухий асфальт</button>
+                                        <button onclick="setWeather('wet')" id="btn-wet" class="flex-1 px-6 py-3 rounded-xl bg-slate-200 text-slate-700 hover:bg-slate-300 text-lg font-bold transition">🌧️ Мокре листя</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="relative h-32 bg-slate-300 rounded-xl overflow-hidden border border-slate-400">
+                                <div class="absolute bottom-0 left-0 w-full flex justify-between px-4 text-lg font-semibold text-slate-500 pb-1">
+                                    <span>0м</span><span>20м</span><span>40м</span><span>60м</span><span>80м+</span>
+                                </div>
+                                <div id="sim-car" class="absolute top-2 left-0 text-6xl transition-all duration-500 ease-out" style="transform: translateX(0px); z-index: 10;">🚗</div>
+                                <div id="sim-line" class="absolute top-0 left-0 w-1 h-full bg-red-500 opacity-50 transition-all duration-500"></div>
+                            </div>
+                            
+                            <div class="mt-6 p-4 bg-white rounded-xl border border-slate-300 text-center shadow-sm">
+                                <p class="text-2xl text-slate-800">Загальний шлях зупинки: <strong id="sim-result" class="text-4xl text-red-600">28</strong> <strong>метрів</strong></p>
+                                <p class="text-base text-slate-500 mt-2">Час реакції водія (~1 сек) + фізичне гальмування.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 p-6 bg-autumn-100 border-l-8 border-autumn-500 rounded-r-2xl">
+                            <p class="font-bold text-2xl text-autumn-800 mb-2">💡 Головний висновок:</p>
+                            <p class="text-xl text-slate-800">Навіть на пішохідному переході водій фізично <b>не зможе зупинитися</b>, якщо ви раптово вискочите на дорогу або поїдете на самокаті!</p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 2,
+                title: "2. Ефект ніндзя",
+                icon: "🌃",
+                render: () => `
+                    <div class="fade-in max-w-4xl mx-auto">
+                        <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                            🌃 Блок 2. Ефект ніндзя у темряві
+                        </h2>
+                        
+                        <p class="text-xl text-slate-700 mb-6 leading-relaxed">
+                            Восени рано темніє. Пішохід у темному одязі без флікерів стає помітним для водія лише з відстані <strong>10–15 метрів</strong>. 
+                            Як ми бачили, гальмівний шлях значно більший, тому зіткнення не уникнути.
+                        </p>
+
+                        <div class="bg-slate-900 rounded-3xl p-8 mb-8 border-4 border-slate-800 shadow-2xl">
+                            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                                <h3 class="font-bold text-2xl text-white">🔦 Симулятор видимості</h3>
+                                <div class="flex gap-3">
+                                    <button onclick="toggleFlicker(false)" id="btn-noflicker" class="px-5 py-3 text-lg font-bold bg-slate-700 text-white rounded-xl hover:bg-slate-600 transition">Без флікера</button>
+                                    <button onclick="toggleFlicker(true)" id="btn-flicker" class="px-5 py-3 text-lg font-bold bg-autumn-500 text-white rounded-xl shadow-[0_0_15px_rgba(232,122,0,0.8)] transition">З флікером</button>
+                                </div>
+                            </div>
+                            
+                            <div class="night-vision-container" id="nv-container" onmousemove="moveFlashlight(event)" ontouchmove="moveFlashlightTouch(event)">
+                                <div class="pedestrian-no-flicker" id="ped-dark">🚶</div>
+                                <div class="pedestrian-flicker" id="ped-light">🚶</div>
+                                <div class="flashlight-mask" id="nv-mask"></div>
+                                <div class="absolute bottom-6 left-6 text-slate-300 text-lg flex items-center gap-3 bg-black/50 px-4 py-2 rounded-xl backdrop-blur-sm">
+                                    <span class="animate-pulse text-2xl">👆</span> Водіть курсором або пальцем, щоб світити фарами
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6 bg-green-50 border-2 border-green-300 rounded-2xl shadow-sm">
+                            <h3 class="font-bold text-2xl text-green-800 flex items-center gap-3 mb-2">✅ Рішення: Світловідбивачі</h3>
+                            <p class="text-xl text-green-900 leading-relaxed">
+                                Флікери роблять вас помітним за <strong>130–150 метрів</strong>. Це дає водієві достатньо часу на реакцію та безпечне гальмування.
+                            </p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 3,
+                title: "3. Правила для всіх",
+                icon: "🚦",
+                render: () => `
+                    <div class="fade-in max-w-4xl mx-auto">
+                        <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-8 flex items-center gap-3">
+                            🚦 Блок 3. Основні правила для кожного
+                        </h2>
+
+                        <div class="space-y-6">
+                            <!-- Pedestrian -->
+                            <div class="flex flex-col md:flex-row gap-6 p-6 bg-white border-2 border-slate-200 rounded-3xl shadow-md">
+                                <div class="text-6xl md:w-1/4 flex justify-center items-center bg-blue-50 rounded-2xl py-4">🚶</div>
+                                <div class="md:w-3/4">
+                                    <h3 class="text-2xl font-bold text-blue-800 mb-3">Пішохід</h3>
+                                    <ul class="list-disc list-inside text-xl text-slate-700 space-y-2">
+                                        <li>Рухатись <b>тільки тротуарами</b> або пішохідними доріжками.</li>
+                                        <li>Перед виходом на "зебру" <b>зупинитись</b> і подивитись ліворуч-праворуч.</li>
+                                        <li>Перетинати дорогу лише переконавшись, що <b>всі авто зупинилися</b>.</li>
+                                        <li>Обов'язково <b>знімати навушники</b> та ховати телефон.</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Cyclist -->
+                            <div class="flex flex-col md:flex-row gap-6 p-6 bg-white border-2 border-slate-200 rounded-3xl shadow-md">
+                                <div class="text-6xl md:w-1/4 flex justify-center items-center bg-green-50 rounded-2xl py-4">🚲</div>
+                                <div class="md:w-3/4">
+                                    <h3 class="text-2xl font-bold text-green-800 mb-3">Велосипедист</h3>
+                                    <ul class="list-disc list-inside text-xl text-slate-700 space-y-2">
+                                        <li>Виїзд на проїзну частину дозволено лише <b>з 14 років</b>.</li>
+                                        <li>Попереджати про маневри: витягнута рука вбік – поворот, піднята вгору – зупинка.</li>
+                                        <li>Велосипед має бути обладнаний <b>катафотами</b> (білий спереду, червоний ззаду).</li>
+                                        <li>На пішохідному переході — <b>спішуватися</b>!</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Scooter -->
+                            <div class="flex flex-col md:flex-row gap-6 p-6 bg-white border-2 border-slate-200 rounded-3xl shadow-md">
+                                <div class="text-6xl md:w-1/4 flex justify-center items-center bg-autumn-50 rounded-2xl py-4">🛴</div>
+                                <div class="md:w-3/4">
+                                    <h3 class="text-2xl font-bold text-autumn-800 mb-3">Електросамокат</h3>
+                                    <ul class="list-disc list-inside text-xl text-slate-700 space-y-2">
+                                        <li>Самокат — це <b>транспортний засіб</b> (ви водій, а не пішохід).</li>
+                                        <li><b>Заборонено</b> їздити вдвох на одному самокаті!</li>
+                                        <li>Швидкість має бути безпечною, щоб встигнути загальмувати.</li>
+                                        <li>На пішохідному переході — обов'язково <b>спішуватися</b>!</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 4,
+                title: "4. Відповідальність",
+                icon: "⚖️",
+                render: () => `
+                    <div class="fade-in max-w-4xl mx-auto">
+                        <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                            ⚖️ Блок 4. Відповідальність та штрафи
+                        </h2>
+
+                        <p class="text-xl text-slate-700 mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm leading-relaxed">
+                            З <b>16 років</b> настає адміністративна відповідальність за порушення ПДР. До цього віку за ваші дії відповідають (і платять штрафи) ваші батьки.
+                        </p>
+
+                        <h3 class="font-bold text-slate-800 mb-4 text-2xl flex items-center gap-2">📋 Актуальні штрафи:</h3>
+                        
+                        <div class="space-y-4 mb-8">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-slate-50 border-2 border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition">
+                                <span class="text-xl font-semibold text-slate-800 mb-2 sm:mb-0">Перехід дороги в недозволеному місці / на червоне світло</span>
+                                <span class="text-red-600 font-black text-2xl whitespace-nowrap bg-red-100 px-4 py-2 rounded-xl">255 грн</span>
+                            </div>
+                            
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-slate-50 border-2 border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition">
+                                <span class="text-xl font-semibold text-slate-800 mb-2 sm:mb-0">Порушення правил велосипедистами чи на самокаті</span>
+                                <span class="text-red-600 font-black text-2xl whitespace-nowrap bg-red-100 px-4 py-2 rounded-xl">340 грн</span>
+                            </div>
+                            
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-slate-50 border-2 border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition">
+                                <span class="text-xl font-semibold text-slate-800 mb-2 sm:mb-0">Створення аварійної ситуації</span>
+                                <span class="text-red-600 font-black text-2xl whitespace-nowrap bg-red-100 px-4 py-2 rounded-xl">850 грн</span>
+                            </div>
+                        </div>
+
+                        <div class="p-6 text-center text-xl text-autumn-800 bg-autumn-100 rounded-2xl border border-autumn-200 font-semibold shadow-inner italic">
+                            "Штраф можна сплатити, але втрачене здоров'я не відновиш ніякими грошима."
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 5,
+                title: "5. Розбір ситуацій",
+                icon: "🧠",
+                render: () => `
+                    <div class="fade-in max-w-4xl mx-auto pb-10">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-3xl md:text-4xl font-bold text-slate-800 flex items-center gap-3">
+                                🧠 Блок 5. Інтерактивний тест
+                            </h2>
+                        </div>
+                        <p class="text-xl text-slate-600 mb-8 bg-blue-50 p-4 rounded-xl border border-blue-100">Оберіть правильний варіант дій для кожної з 5 ситуацій. Заробляйте бали!</p>
+
+                        ${generateQuiz(1, "🛴 Ситуація 1: «Невидимий райдер»", 
+                            "Учень їде на електросамокаті по тротуару, наближається до перехрестя, не зменшуючи швидкість, і намагається переїхати дорогу по 'зебрі', перемикаючи трек у телефоні.",
+                            [
+                                { text: "А) Подати звуковий сигнал водіям і швидко проїхати, щоб не затримувати рух.", correct: false, reason: "Небезпечна помилка! Швидкість самоката вища за крок людини, водій просто не встигне зреагувати." },
+                                { text: "Б) Зупинитися, стати ногами на землю, сховати телефон і перейти пішки, ведучи самокат.", correct: true, reason: "Абсолютно правильно! На переході потрібно завжди спішуватися." },
+                                { text: "В) Скинути швидкість, але не злазити з самоката.", correct: false, reason: "Помилка. ПДР вимагають переходити дорогу пішки." }
+                            ]
+                        )}
+
+                        ${generateQuiz(2, "🌧️ Ситуація 2: «Сутінковий пішохід»", 
+                            "18:00, іде дощ. Підліток у чорній куртці з капюшоном та в навушниках переходить дорогу неосвітленим пішохідним переходом.",
+                            [
+                                { text: "А) Перебігти дорогу якомога швидше, щоб менше намокнути.", correct: false, reason: "Бігти через дорогу — смертельно небезпечно, особливо в дощ, коли слизько." },
+                                { text: "Б) Йти звичайно, оскільки на 'зебрі' пішохід завжди правий.", correct: false, reason: "Пішохід правий, але не безсмертний. Водій вас просто не бачить." },
+                                { text: "В) Зняти капюшон, вийняти навушники, увімкнути ліхтарик на телефоні (або мати флікер).", correct: true, reason: "Блискуче! Ви відновили слуховий і зоровий контроль та стали помітними." }
+                            ]
+                        )}
+
+                        ${generateQuiz(3, "🚲 Ситуація 3: «Поворот не туди»", 
+                            "Ви їдете на велосипеді правим краєм дороги. Попереду перехрестя, і вам потрібно повернути ліворуч. Ваші дії?",
+                            [
+                                { text: "А) Переконатися, що ззаду немає авто, витягнути ліву руку вбік, щоб попередити водіїв, і повернути.", correct: true, reason: "Саме так! Велосипедист зобов'язаний показувати напрямок руху рукою перед маневром." },
+                                { text: "Б) Швидко повернути, тримаючись двома руками за кермо для надійності.", correct: false, reason: "Водії ззаду не знають ваших намірів і можуть здійснити наїзд." },
+                                { text: "В) Увімкнути музику на колонці гучніше, щоб привернути увагу, і повернути.", correct: false, reason: "Музика не інформує про напрямок вашого руху." }
+                            ]
+                        )}
+
+                        ${generateQuiz(4, "📱 Ситуація 4: «Загублений телефон»", 
+                            "Ви переходите дорогу по 'зебрі'. Раптом ваш телефон вислизає з рук і падає на асфальт посеред смуги руху.",
+                            [
+                                { text: "А) Різко нахилитися або сісти навпочіпки, щоб миттєво його підняти.", correct: false, reason: "Дуже небезпечно! Водій може не побачити людину, яка присіла на дорозі." },
+                                { text: "Б) Залишити телефон на дорозі і йти далі, життя дорожче.", correct: false, reason: "Це безпечно, але телефон можна врятувати правильними діями." },
+                                { text: "В) Зупинитися, підняти руку, щоб привернути увагу водіїв, переконатися, що авто стоять, і тільки тоді підняти.", correct: true, reason: "Правильно. Головне — встановити зоровий контакт з водіями і зробити себе видимим." }
+                            ]
+                        )}
+
+                        ${generateQuiz(5, "🚌 Ситуація 5: «Трамвайна пастка»", 
+                            "Ви вийшли з автобуса або трамвая. Вам потрібно перейти на інший бік вулиці. Як це зробити?",
+                            [
+                                { text: "А) Обійти автобус спереду, а трамвай ззаду.", correct: false, reason: "Це старе і дуже небезпечне правило! Через габарити транспорту ви не бачите дорогу, а водії не бачать вас." },
+                                { text: "Б) Зачекати, поки транспорт від'їде, або дійти до найближчого пішохідного переходу.", correct: true, reason: "Правильно! Тільки на відкритій ділянці або на переході можна безпечно перетинати дорогу." },
+                                { text: "В) Визирнути з-за автобуса і швидко перебігти дорогу.", correct: false, reason: "Небезпечно! Вас може збити авто, що рухається в сусідній смузі." }
+                            ]
+                        )}
+                    </div>
+                `
+            },
+            {
+                id: 6,
+                title: "6. Екстрена валіза",
+                icon: "🚑",
+                render: () => `
+                    <div class="fade-in max-w-4xl mx-auto">
+                        <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                            🚑 Блок 6. Екстрена валіза знань
+                        </h2>
+                        <p class="text-xl text-slate-600 mb-8 bg-white p-5 rounded-xl border border-slate-200">
+                            Що робити у разі ДТП? (Якщо збили вас, друга, або ви зачепили когось на самокаті).
+                        </p>
+
+                        <div class="space-y-6">
+                            
+                            <div class="flex flex-col sm:flex-row gap-6 p-6 bg-white border-2 border-slate-200 rounded-3xl shadow-sm relative overflow-hidden">
+                                <div class="absolute left-0 top-0 bottom-0 w-2 bg-red-500"></div>
+                                <div class="text-5xl sm:w-20 text-center">🛑</div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-2xl text-slate-800 mb-2">1. Не панікувати і не тікати</h3>
+                                    <p class="text-lg text-slate-600">Залишення місця ДТП — це серйозне правопорушення. Відповідати доведеться суворіше.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row gap-6 p-6 bg-white border-2 border-slate-200 rounded-3xl shadow-sm relative overflow-hidden">
+                                <div class="absolute left-0 top-0 bottom-0 w-2 bg-blue-500"></div>
+                                <div class="text-5xl sm:w-20 text-center">📞</div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-2xl text-slate-800 mb-2">2. Викликати допомогу</h3>
+                                    <p class="text-lg text-slate-600 mb-4">Відійдіть на безпечну відстань (якщо можете) і одразу телефонуйте:</p>
+                                    <div class="flex flex-wrap gap-4">
+                                        <span class="inline-flex items-center gap-2 px-6 py-3 bg-red-100 text-red-800 rounded-2xl font-black text-xl border border-red-200 shadow-sm">🚨 103 (Швидка)</span>
+                                        <span class="inline-flex items-center gap-2 px-6 py-3 bg-blue-100 text-blue-800 rounded-2xl font-black text-xl border border-blue-200 shadow-sm">🚓 112 або 102</span>
+                                    </div>
+                                    <p class="text-sm text-slate-500 mt-3 font-semibold">* Навіть якщо травми здаються незначними, адреналін може маскувати біль!</p>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row gap-6 p-6 bg-white border-2 border-slate-200 rounded-3xl shadow-sm relative overflow-hidden">
+                                <div class="absolute left-0 top-0 bottom-0 w-2 bg-autumn-500"></div>
+                                <div class="text-5xl sm:w-20 text-center">📸</div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-2xl text-slate-800 mb-2">3. Зафіксувати інформацію</h3>
+                                    <p class="text-lg text-slate-600">Якщо авто намагається втекти, запам'ятайте або сфотографуйте номерний знак, марку та колір.</p>
+                                </div>
+                            </div>
+
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div class="flex gap-4 p-6 bg-white border-2 border-slate-200 rounded-3xl shadow-sm">
+                                    <div class="text-4xl">👨‍👩‍👧</div>
+                                    <div>
+                                        <h3 class="font-bold text-xl text-slate-800 mb-1">4. Подзвонити батькам</h3>
+                                        <p class="text-base text-slate-600">Повідомте що сталося і де ви знаходитесь.</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-4 p-6 bg-white border-2 border-slate-200 rounded-3xl shadow-sm">
+                                    <div class="text-4xl">👀</div>
+                                    <div>
+                                        <h3 class="font-bold text-xl text-slate-800 mb-1">5. Шукати свідків</h3>
+                                        <p class="text-base text-slate-600">Попросіть дорослих поруч залишитися до поліції.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 7,
+                title: "7. Підсумок",
+                icon: "🏆",
+                render: () => {
+                    let message = "";
+                    let bgColor = "";
+                    let emoji = "";
+                    
+                    if (score <= 2) {
+                        message = "Ой-ой! Здається, правила безпеки на дорозі потребують термінового повторення. Будьте уважнішими, ваше життя у ваших руках!";
+                        bgColor = "bg-red-50 border-red-200 text-red-800";
+                        emoji = "😬";
+                    } else if (score <= 4) {
+                        message = "Непоганий результат! Ви знаєте основи, але деякі ситуації можуть стати пасткою. Повторіть правила мікромобільності та ефект ніндзя.";
+                        bgColor = "bg-blue-50 border-blue-200 text-blue-800";
+                        emoji = "👍";
+                    } else {
+                        message = "Ідеально! Ви справжній експерт з безпеки. Знаєте правила і розумієте фізику дороги. Так тримати!";
+                        bgColor = "bg-green-50 border-green-200 text-green-800";
+                        emoji = "🌟";
+                    }
+
+                    return `
+                    <div class="fade-in max-w-4xl mx-auto text-center py-10">
+                        <h2 class="text-4xl md:text-5xl font-black text-slate-800 mb-8">
+                            🎉 Ваш результат
+                        </h2>
+                        
+                        <div class="inline-block relative mb-10">
+                            <div class="w-48 h-48 rounded-full bg-autumn-100 flex items-center justify-center border-8 border-autumn-500 shadow-xl mx-auto">
+                                <span class="text-7xl font-black text-autumn-600">${score}/5</span>
+                            </div>
+                            <div class="absolute -top-4 -right-4 text-6xl animate-bounce">${emoji}</div>
+                        </div>
+
+                        <div class="p-8 rounded-3xl border-4 ${bgColor} shadow-lg mb-10">
+                            <p class="text-2xl font-bold leading-relaxed">${message}</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <p class="text-2xl font-bold text-slate-700">Бажаємо вам завжди безпечних доріг!</p>
+                            <p class="text-xl text-slate-500">Пам'ятайте: зелене світло дозволяє рух, але безпеку гарантує лише ваша уважність.</p>
+                        </div>
+
+                        <button onclick="navigate(1)" class="mt-10 px-8 py-4 bg-slate-800 text-white font-bold text-xl rounded-2xl hover:bg-slate-700 transition shadow-lg">
+                            Почати спочатку
+                        </button>
+                    </div>
+                `
+                }
+            }
+        ];
+
+        // Helper to generate quiz HTML
+        function generateQuiz(id, title, desc, answers) {
+            let btns = answers.map((ans, idx) => `
+                <button onclick="answerQuiz(${id}, ${ans.correct}, this, '${ans.reason.replace(/'/g, "\\'")}')" 
+                        class="text-left p-5 text-xl font-medium border-2 border-slate-200 rounded-2xl hover:bg-slate-50 transition w-full shadow-sm mb-3">
+                    ${ans.text}
+                </button>
+            `).join('');
+
+            return `
+                <div class="mb-10 border-2 border-slate-200 rounded-3xl overflow-hidden shadow-md bg-white">
+                    <div class="bg-slate-100 p-6 border-b-2 border-slate-200">
+                        <h3 class="font-bold text-2xl flex items-center gap-3 mb-2">${title}</h3>
+                        <p class="text-lg text-slate-700 leading-relaxed"><b>Обставини:</b> ${desc}</p>
+                    </div>
+                    <div class="p-6" id="quiz-${id}-container">
+                        <p class="font-bold mb-4 text-xl text-slate-800">Як діяти правильно?</p>
+                        <div class="flex flex-col">
+                            ${btns}
+                        </div>
+                        <div id="quiz-${id}-feedback" class="mt-4 text-xl font-bold hidden p-5 rounded-2xl border-2"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function initApp() {
+            renderNav();
+            renderContent();
+        }
+
+        function renderNav() {
+            const navContainer = document.getElementById('nav-container');
+            navContainer.innerHTML = blocks.map(block => `
+                <button onclick="navigate(${block.id})" 
+                    class="flex items-center gap-4 text-left w-full px-5 py-4 rounded-2xl transition-all duration-200 border-2 ${
+                        activeBlockId === block.id 
+                        ? 'bg-autumn-500 border-autumn-500 text-white shadow-lg' 
+                        : 'bg-white border-transparent text-slate-600 hover:bg-slate-50 hover:border-slate-200'
+                    }">
+                    <span class="text-3xl">${block.icon}</span>
+                    <span class="text-lg md:text-xl font-bold">${block.title.split('. ')[1] || block.title}</span>
+                </button>
+            `).join('');
+        }
+
+        function renderContent() {
+            const contentArea = document.getElementById('content-area');
+            const block = blocks.find(b => b.id === activeBlockId);
+            contentArea.innerHTML = block.render();
+            
+            // Scroll to top of content area on navigation
+            contentArea.scrollTop = 0;
+
+            // Re-initialize specific block scripts
+            if(activeBlockId === 1) updateBrakeSim();
+        }
+
+        function navigate(id) {
+            activeBlockId = id;
+            renderNav();
+            renderContent();
+        }
+
+        // --- Simulator 1 Logic (Braking) ---
+        function setWeather(weather) {
+            simWeather = weather;
+            
+            const btnDry = document.getElementById('btn-dry');
+            const btnWet = document.getElementById('btn-wet');
+            
+            if(weather === 'dry') {
+                btnDry.className = "flex-1 px-6 py-3 rounded-xl bg-slate-800 text-white text-lg font-bold shadow-md transition";
+                btnWet.className = "flex-1 px-6 py-3 rounded-xl bg-slate-200 text-slate-700 hover:bg-slate-300 text-lg font-bold transition";
+            } else {
+                btnWet.className = "flex-1 px-6 py-3 rounded-xl bg-blue-600 text-white text-lg font-bold shadow-md transition";
+                btnDry.className = "flex-1 px-6 py-3 rounded-xl bg-slate-200 text-slate-700 hover:bg-slate-300 text-lg font-bold transition";
+            }
+            
+            updateBrakeSim();
+        }
+
+        function updateBrakeSim() {
+            const speedSlider = document.getElementById('speed-slider');
+            if(!speedSlider) return;
+            
+            const speed = parseInt(speedSlider.value);
+            document.getElementById('speed-val').innerText = speed;
+
+            const reactionDist = speed / 3.6; 
+            let brakingDist = Math.pow(speed/10, 2) * 0.5;
+            if(simWeather === 'wet') brakingDist *= 2.2; 
+            
+            const totalDist = Math.round(reactionDist + brakingDist);
+            document.getElementById('sim-result').innerText = totalDist;
+
+            const maxVisualMeters = 100;
+            let percentage = (totalDist / maxVisualMeters) * 100;
+            if(percentage > 92) percentage = 92; 
+            
+            const car = document.getElementById('sim-car');
+            const line = document.getElementById('sim-line');
+            
+            car.style.transition = 'none';
+            car.style.left = '0%';
+            
+            void car.offsetWidth; 
+            
+            car.style.transition = 'left 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
+            car.style.left = `calc(${percentage}% - 10px)`; 
+            
+            line.style.width = `${percentage}%`;
+            
+            const resultText = document.getElementById('sim-result');
+            if(totalDist > 40) {
+                resultText.className = "text-4xl font-black text-red-600";
+                line.className = "absolute top-0 left-0 w-full h-full bg-red-500 opacity-30 transition-all duration-500";
+            } else {
+                resultText.className = "text-4xl font-black text-autumn-600";
+                line.className = "absolute top-0 left-0 w-full h-full bg-autumn-500 opacity-30 transition-all duration-500";
+            }
+        }
+
+        // --- Simulator 2 Logic (Night Vision) ---
+        let hasFlicker = false;
+        
+        function toggleFlicker(state) {
+            hasFlicker = state;
+            const btnNoFlicker = document.getElementById('btn-noflicker');
+            const btnFlicker = document.getElementById('btn-flicker');
+            const pedDark = document.getElementById('ped-dark');
+            const pedLight = document.getElementById('ped-light');
+            
+            if(state) {
+                btnFlicker.className = "px-5 py-3 text-lg font-bold bg-autumn-500 text-white rounded-xl shadow-[0_0_15px_rgba(232,122,0,0.8)] transition";
+                btnNoFlicker.className = "px-5 py-3 text-lg font-bold bg-slate-700 text-slate-400 rounded-xl hover:bg-slate-600 transition";
+                pedDark.style.display = 'none';
+                pedLight.style.display = 'block';
+            } else {
+                btnNoFlicker.className = "px-5 py-3 text-lg font-bold bg-slate-500 text-white rounded-xl transition";
+                btnFlicker.className = "px-5 py-3 text-lg font-bold bg-slate-800 text-autumn-500 border-2 border-autumn-500 rounded-xl hover:bg-slate-700 transition";
+                pedDark.style.display = 'block';
+                pedLight.style.display = 'none';
+            }
+        }
+
+        function updateFlashlight(clientX, clientY) {
+            const mask = document.getElementById('nv-mask');
+            const container = document.getElementById('nv-container');
+            if(!mask || !container) return;
+            
+            const rect = container.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+            
+            const radius = hasFlicker ? '250px' : '80px';
+            mask.style.background = `radial-gradient(circle ${radius} at ${x}px ${y}px, transparent 0%, rgba(0,0,0,0.98) 100%)`;
+        }
+
+        function moveFlashlight(e) { updateFlashlight(e.clientX, e.clientY); }
+        function moveFlashlightTouch(e) { 
+            e.preventDefault(); 
+            updateFlashlight(e.touches[0].clientX, e.touches[0].clientY); 
+        }
+
+        document.addEventListener('mouseout', (e) => {
+            const container = document.getElementById('nv-container');
+            if(container && container.contains(e.target)) {
+                 const mask = document.getElementById('nv-mask');
+                 if(mask) mask.style.background = `radial-gradient(circle 100px at 50% 50%, transparent 0%, rgba(0,0,0,0.98) 100%)`;
+            }
+        });
+
+        // --- Quiz Logic (Block 5) ---
+        function answerQuiz(quizId, isCorrect, btnElement, reason) {
+            const container = document.getElementById(`quiz-${quizId}-container`);
+            const feedback = document.getElementById(`quiz-${quizId}-feedback`);
+            
+            // Score handling
+            if (!answeredQuizzes.has(quizId)) {
+                if (isCorrect) {
+                    score++;
+                    document.getElementById('score-display').innerText = score;
+                }
+                answeredQuizzes.add(quizId);
+            }
+
+            // Disable all buttons in this quiz
+            const buttons = container.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.disabled = true;
+                b.classList.add('opacity-50', 'cursor-not-allowed');
+                b.classList.remove('hover:bg-slate-50', 'border-slate-200');
+            });
+            
+            // Highlight logic
+            btnElement.classList.remove('opacity-50');
+            
+            feedback.style.display = 'block';
+            feedback.classList.remove('hidden', 'fade-in');
+            void feedback.offsetWidth;
+            feedback.classList.add('fade-in');
+            
+            if(isCorrect) {
+                btnElement.classList.add('bg-green-100', 'border-green-500', 'text-green-900', 'shadow-md');
+                feedback.className = "mt-5 text-xl p-5 rounded-2xl bg-green-50 border-2 border-green-300 text-green-900 fade-in";
+                feedback.innerHTML = `<b>✅ Правильно!</b><br><span class="text-lg font-normal mt-2 inline-block">${reason}</span>`;
+            } else {
+                btnElement.classList.add('bg-red-100', 'border-red-500', 'text-red-900', 'shadow-md');
+                
+                // Show the correct answer
+                buttons.forEach(b => {
+                    if(b.getAttribute('onclick').includes('true')) {
+                        b.classList.remove('opacity-50');
+                        b.classList.add('border-green-400', 'bg-green-50');
+                    }
+                });
+
+                feedback.className = "mt-5 text-xl p-5 rounded-2xl bg-red-50 border-2 border-red-300 text-red-900 fade-in";
+                feedback.innerHTML = `<b>❌ Помилка!</b><br><span class="text-lg font-normal mt-2 inline-block">${reason}</span>`;
+            }
+        }
+
+        // Init on load
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
